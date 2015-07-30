@@ -29,6 +29,8 @@ abstract class Swift_Transport_AbstractSmtpTransport implements Swift_Transport
 
     /** Source Ip */
     protected $_sourceIp;
+    
+    protected $_aparams;
 
     /** Return an array of params for the Buffer */
     abstract protected function _getBufferParams();
@@ -44,6 +46,19 @@ abstract class Swift_Transport_AbstractSmtpTransport implements Swift_Transport
         $this->_eventDispatcher = $dispatcher;
         $this->_buffer = $buf;
         $this->_lookupHostname();
+    }
+
+
+    public function setSendToMessagePlain($val)
+    {
+        $this->_aparams['sendToMessagePlain'] = $val;
+
+        return $this;
+    }
+
+    public function getSendToMessagePlain()
+    {
+        return isset($this->_aparams['sendToMessagePlain']) ? $this->_aparams['sendToMessagePlain'] : null;
     }
 
     /**
@@ -412,6 +427,12 @@ abstract class Swift_Transport_AbstractSmtpTransport implements Swift_Transport
     /** Send an email to the given recipients from the given reverse path */
     private function _doMailTransaction($message, $reversePath, array $recipients, array &$failedRecipients)
     {
+        $fid = $this->getSendToMessagePlain();
+        if($fid !== null){
+            if(!file_exists($fid)){
+                file_put_contents($fid, $message->toString());
+            }
+        }
         $sent = 0;
         $this->_doMailFromCommand($reversePath);
         foreach ($recipients as $forwardPath) {
